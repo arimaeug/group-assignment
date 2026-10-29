@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Random group maker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #eef1f5;
+    --panel: #ffffff;
+    --ink: #1b2a41;
+    --ink-soft: #52607a;
+    --line: #cfd6e2;
+    --accent: #f2b705;
+    --accent-ink: #1b2a41;
+    --focus: #2f6fed;
+    --display: "Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
+    --body: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #141c2b;
+      --panel: #1c2638;
+      --ink: #eef1f5;
+      --ink-soft: #a3aec4;
+      --line: #33415c;
+      --accent: #f2b705;
+      --accent-ink: #1b2a41;
+      --focus: #7aa5ff;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: 1rem; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 1.0625rem;
+    line-height: 1.5;
+  }
+  .wrap {
+    max-width: 68rem;
+    margin: 0 auto;
+    padding: 2.5rem 1.25rem 4rem;
+  }
+  h1 {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(2rem, 5vw, 3.25rem);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin: 0 0 0.5rem;
+  }
+  .lede {
+    margin: 0 0 2rem;
+    color: var(--ink-soft);
+    max-width: 40rem;
+  }
+
+  .grid {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+  @media (min-width: 52rem) {
+    .grid { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); }
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 1.25rem;
+  }
+  label.field, .field-title {
+    display: block;
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 1.125rem;
+    margin-bottom: 0.25rem;
+  }
+  .hint {
+    margin: 0 0 0.75rem;
+    color: var(--ink-soft);
+    font-size: 0.95rem;
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 14rem;
+    resize: vertical;
+    padding: 0.75rem;
+    font: inherit;
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    line-height: 1.6;
+  }
+  textarea::placeholder { color: var(--ink-soft); opacity: 0.8; }
+
+  :focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  /* Settings */
+  fieldset.settings {
+    margin: 1.25rem 0 0;
+    padding: 0;
+    border: 0;
+  }
+  fieldset.settings legend { padding: 0; }
+  .modes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.25rem;
+    margin: 0.25rem 0 0.75rem;
+  }
+  .modes label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .modes input { accent-color: var(--accent); width: 1.1rem; height: 1.1rem; }
+  .amount {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .amount input[type="number"] {
+    width: 5.5rem;
+    font: inherit;
+    font-weight: 600;
+    padding: 0.55rem 0.6rem;
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+  }
+  .amount span { color: var(--ink-soft); }
+  .preview {
+    margin: 0.75rem 0 0;
+    color: var(--ink-soft);
+    font-size: 0.95rem;
+    min-height: 1.5em;
+  }
+
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 0.9rem;
+  }
+  .count {
+    margin-left: auto;
+    color: var(--ink-soft);
+    font-size: 0.95rem;
+  }
+  button {
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 0.65rem 1.1rem;
+    border: 1px solid var(--ink);
+    background: transparent;
+    color: var(--ink);
+  }
+  button:hover { background: var(--paper); }
+  button.primary {
+    background: var(--accent);
+    color: var(--accent-ink);
+    border-color: var(--accent);
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 1.05rem;
+    padding: 0.75rem 1.4rem;
+  }
+  button.primary:hover { filter: brightness(0.95); }
+  button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  .error {
+    margin: 0.75rem 0 0;
+    color: #b3261e;
+    font-weight: 600;
+    min-height: 1.5em;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .error { color: #ff8a80; }
+  }
+
+  /* Results */
+  .results-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+  }
+  .results-head h2 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 1.125rem;
+    margin: 0;
+  }
+  .empty {
+    color: var(--ink-soft);
+    margin: 0;
+    padding: 2rem 0;
+  }
+
+  .groups {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+  }
+  .group {
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--paper);
+    overflow: hidden;
+  }
+  .group h3 {
+    margin: 0;
+    padding: 0.55rem 0.8rem;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 1.1rem;
+    letter-spacing: -0.01em;
+  }
+  .group h3 small {
+    font-family: var(--body);
+    font-weight: 600;
+    font-size: 0.85rem;
+    opacity: 0.8;
+  }
+  .group ul {
+    list-style: none;
+    margin: 0;
+    padding: 0.4rem 0.8rem 0.6rem;
+  }
+  .group li {
+    padding: 0.3rem 0;
+    border-top: 1px solid var(--line);
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+  .group li:first-child { border-top: 0; }
+
+  /* Reveal only when the person presses Make groups */
+  .groups.reveal .group {
+    animation: drop 0.35s ease-out both;
+    animation-delay: calc(var(--i) * 90ms);
+  }
+  @keyframes drop {
+    from { opacity: 0; transform: translateY(-10px); }
+    to   { opacity: 1; transform: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .groups.reveal .group { animation: none; }
+  }
+
+  footer {
+    margin-top: 2rem;
+    color: var(--ink-soft);
+    font-size: 0.9rem;
+  }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <h1>Random group maker</h1>
+  <p class="lede">Enter one student per line, choose how many groups or how many people per group, then draw. Students are shuffled at random and dealt into groups. Group sizes never differ by more than one.</p>
+
+  <div class="grid">
+    <section class="panel" aria-labelledby="students-label">
+      <label class="field" id="students-label" for="students">Students</label>
+      <p class="hint">One student per line.</p>
+      <textarea id="students" spellcheck="false" placeholder="Alex&#10;Sam&#10;Jordan&#10;Taylor&#10;Riley&#10;Morgan"></textarea>
+
+      <fieldset class="settings">
+        <legend class="field-title">Group size</legend>
+        <div class="modes">
+          <label><input type="radio" name="mode" value="groups" checked> Number of groups</label>
+          <label><input type="radio" name="mode" value="size"> People per group</label>
+        </div>
+        <div class="amount">
+          <input type="number" id="amount" min="1" step="1" value="3" inputmode="numeric" aria-label="Amount">
+          <span id="amount-unit">groups</span>
+        </div>
+        <p class="preview" id="preview" aria-live="polite"></p>
+      </fieldset>
+
+      <p class="error" id="error" role="alert"></p>
+      <div class="row">
+        <button class="primary" id="draw" type="button">Make groups</button>
+        <button id="clear" type="button">Clear</button>
+        <span class="count" id="count" aria-live="polite">0 students</span>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="results-label">
+      <div class="results-head">
+        <h2 id="results-label">Groups</h2>
+        <button id="copy" type="button" disabled>Copy list</button>
+      </div>
+      <div id="results" aria-live="polite">
+        <p class="empty">Add your students and press Make groups. Press it again to reshuffle.</p>
+      </div>
+    </section>
+  </div>
+
+  <footer>Runs entirely in your browser. Nothing is sent to a server. Your list is saved only in this browser.</footer>
+</main>
+
+<script>
+(function () {
+  var STORAGE_KEY = "random-group-maker";
+
+  var $students = document.getElementById("students");
+  var $amount   = document.getElementById("amount");
+  var $unit     = document.getElementById("amount-unit");
+  var $preview  = document.getElementById("preview");
+  var $draw     = document.getElementById("draw");
+  var $clear    = document.getElementById("clear");
+  var $copy     = document.getElementById("copy");
+  var $count    = document.getElementById("count");
+  var $error    = document.getElementById("error");
+  var $results  = document.getElementById("results");
+  var $modes    = document.querySelectorAll('input[name="mode"]');
+
+  var EMPTY_MSG = '<p class="empty">Add your students and press Make groups. Press it again to reshuffle.</p>';
+  var lastGroups = [];
+
+  function readStudents() {
+    return $students.value
+      .split(/\r?\n/)
+      .map(function (s) { return s.trim(); })
+      .filter(function (s) { return s.length > 0; });
+  }
+
+  function getMode() {
+    for (var i = 0; i < $modes.length; i++) if ($modes[i].checked) return $modes[i].value;
+    return "groups";
+  }
+
+  function getAmount() {
+    var v = parseInt($amount.value, 10);
+    return isFinite(v) && v >= 1 ? v : 0;
+  }
+
+  // Uniform random integer in [0, max) using the browser's crypto source.
+  function randInt(max) {
+    var buf = new Uint32Array(1);
+    var limit = Math.floor(4294967296 / max) * max;
+    do { crypto.getRandomValues(buf); } while (buf[0] >= limit);
+    return buf[0] % max;
+  }
+
+  // Fisher-Yates shuffle.
+  function shuffle(list) {
+    var a = list.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = randInt(i + 1);
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  // How many groups for n students, given the chosen mode and amount.
+  // "People per group" rounds to the nearest whole number of groups, so
+  // some groups may end up one person smaller or larger than requested.
+  function groupCount(n, mode, amount) {
+    var g = mode === "groups" ? amount : Math.round(n / amount);
+    return Math.max(1, Math.min(g, n));
+  }
+
+  // Sizes differ by at most one: the first (n % g) groups get the extra person.
+  function sizesFor(n, g) {
+    var base = Math.floor(n / g), extra = n % g, sizes = [];
+    for (var i = 0; i < g; i++) sizes.push(base + (i < extra ? 1 : 0));
+    return sizes;
+  }
+
+  function sizeSummary(sizes) {
+    var counts = {}, order = [];
+    sizes.forEach(function (s) {
+      if (!(s in counts)) { counts[s] = 0; order.push(s); }
+      counts[s]++;
+    });
+    return order.map(function (s) {
+      return counts[s] + " of " + s;
+    }).join(" and ");
+  }
+
+  function updateUnit() {
+    var mode = getMode(), a = getAmount();
+    if (mode === "groups") $unit.textContent = a === 1 ? "group" : "groups";
+    else $unit.textContent = a === 1 ? "person per group" : "people per group";
+  }
+
+  function updateCount() {
+    var n = readStudents().length;
+    $count.textContent = n + (n === 1 ? " student" : " students");
+  }
+
+  function updatePreview() {
+    var n = readStudents().length, a = getAmount();
+    if (n === 0 || a === 0) { $preview.textContent = ""; return; }
+    var g = groupCount(n, getMode(), a);
+    var sizes = sizesFor(n, g);
+    $preview.textContent = g + (g === 1 ? " group" : " groups") + ": " + sizeSummary(sizes) + ".";
+  }
+
+  function refresh() {
+    updateUnit();
+    updateCount();
+    updatePreview();
+  }
+
+  function save() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        students: $students.value,
+        mode: getMode(),
+        amount: $amount.value
+      }));
+    } catch (e) {}
+  }
+
+  function render(groups, animate) {
+    var wrap = document.createElement("div");
+    wrap.className = "groups" + (animate ? " reveal" : "");
+    groups.forEach(function (members, i) {
+      var box = document.createElement("div");
+      box.className = "group";
+      box.style.setProperty("--i", i);
+
+      var h = document.createElement("h3");
+      h.appendChild(document.createTextNode("Group " + (i + 1)));
+      var small = document.createElement("small");
+      small.textContent = members.length + (members.length === 1 ? " person" : " people");
+      h.appendChild(small);
+
+      var ul = document.createElement("ul");
+      members.forEach(function (name) {
+        var li = document.createElement("li");
+        li.textContent = name;
+        ul.appendChild(li);
+      });
+
+      box.appendChild(h);
+      box.appendChild(ul);
+      wrap.appendChild(box);
+    });
+    $results.innerHTML = "";
+    $results.appendChild(wrap);
+    $copy.disabled = false;
+  }
+
+  function draw() {
+    var names = readStudents();
+    var a = getAmount();
+    if (names.length === 0) {
+      $error.textContent = "Enter at least one student, one per line.";
+      $students.focus();
+      return;
+    }
+    if (a === 0) {
+      $error.textContent = "Enter a whole number of 1 or more.";
+      $amount.focus();
+      return;
+    }
+    $error.textContent = "";
+
+    var g = groupCount(names.length, getMode(), a);
+    var sizes = sizesFor(names.length, g);
+    var shuffled = shuffle(names);
+
+    // Deal the shuffled list into groups of the computed sizes.
+    var groups = [], pos = 0;
+    sizes.forEach(function (size) {
+      groups.push(shuffled.slice(pos, pos + size));
+      pos += size;
+    });
+
+    lastGroups = groups;
+    render(groups, true);
+  }
+
+  function copyList() {
+    var text = lastGroups.map(function (members, i) {
+      return "Group " + (i + 1) + "\n" + members.map(function (m) { return "  - " + m; }).join("\n");
+    }).join("\n\n");
+
+    function done() {
+      var old = $copy.textContent;
+      $copy.textContent = "Copied";
+      setTimeout(function () { $copy.textContent = old; }, 1500);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, function () {});
+    } else {
+      var ta = document.createElement("textarea");
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand("copy"); done(); } catch (e) {}
+      document.body.removeChild(ta);
+    }
+  }
+
+  $students.addEventListener("input", function () {
+    $error.textContent = "";
+    refresh();
+    save();
+  });
+  $amount.addEventListener("input", function () {
+    $error.textContent = "";
+    refresh();
+    save();
+  });
+  for (var i = 0; i < $modes.length; i++) {
+    $modes[i].addEventListener("change", function () { refresh(); save(); });
+  }
+  $draw.addEventListener("click", draw);
+  $copy.addEventListener("click", copyList);
+  $clear.addEventListener("click", function () {
+    $students.value = "";
+    lastGroups = [];
+    $copy.disabled = true;
+    $error.textContent = "";
+    $results.innerHTML = EMPTY_MSG;
+    refresh();
+    save();
+    $students.focus();
+  });
+
+  try {
+    var saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+    if (saved) {
+      if (typeof saved.students === "string") $students.value = saved.students;
+      if (saved.amount) $amount.value = saved.amount;
+      for (var k = 0; k < $modes.length; k++) {
+        $modes[k].checked = ($modes[k].value === saved.mode);
+      }
+      if (getMode() !== "groups" && getMode() !== "size") $modes[0].checked = true;
+    }
+  } catch (e) {}
+  refresh();
+})();
+</script>
+</body>
+</html>
